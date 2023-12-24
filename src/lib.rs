@@ -52,6 +52,7 @@ pub struct Contract {
 impl Default for Contract {
     fn default() -> Self {
         Self {
+            // b"v" é um prefixador que vai ser usado como chave no store do contrato
             places: Vector::new(b"v"),
         }
     }
@@ -124,8 +125,10 @@ impl Contract {
     // PAYED - Public method - Add pictures to a place
     pub fn add_picture_to_place(&mut self, place_id: u64, pictures: Vec<String>) {
         let mut place = self.places.get(place_id).unwrap() as Place;
+        let place_name = place.name.clone();
         let updated_places = vec![place.pictures, pictures].concat();
         place.pictures = updated_places;
+        log_str(&format!("Adding pictures to: {place_name}"));
 
         // Update the place inside the stored places
         self.places.replace(place_id, &place);
@@ -134,6 +137,7 @@ impl Contract {
     // PAYED - Public method - Remove a place
     pub fn remove_place(&mut self, place_id: u64) {
         // NOTE: Is this a similar way for JS -> Array.filter?
+        log_str(&format!("Removing place where place_id is: {place_id}"));
         if let Some(index) = self.places.iter().position(|place| place.id == place_id) {
             self.places.swap_remove(index as u64);
         }

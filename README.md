@@ -1,65 +1,8 @@
-# Hello NEAR Contract
+# Place NEAR Contract
 
-The smart contract exposes two methods to enable storing and retrieving a greeting in the NEAR network.
-
-```rust
-const DEFAULT_GREETING: &str = "Hello";
-
-#[near_bindgen]
-#[derive(BorshDeserialize, BorshSerialize)]
-pub struct Contract {
-    greeting: String,
-}
-
-impl Default for Contract {
-    fn default() -> Self {
-        Self { greeting: DEFAULT_GREETING.to_string() }
-    }
-}
-
-#[near_bindgen]
-impl Contract {
-    // Public: Returns the stored greeting, defaulting to 'Hello'
-    pub fn get_greeting(&self) -> String {
-        return self.greeting.clone();
-    }
-
-    // Public: Takes a greeting, such as 'howdy', and records it
-    pub fn set_greeting(&mut self, greeting: String) {
-        // Record a log permanently to the blockchain!
-        log!("Saving greeting {}", greeting);
-        self.greeting = greeting;
-    }
-}
-```
+A smart contract in the NEAR network to store places and enable users to vote and set their qualities.
 
 <br />
-
-## Write Methods
-
-```rs
-// Add Place
-pub fn add_place(&mut self, place: PlaceInput)
-
-// Vote
-pub fn vote(&mut self, place_id: u64, vote: i8)
-
-// Add pictures to a Place
-pub fn add_picture_to_place(&mut self, place_id: u64, pictures: Vec<String>)
-
-// Remove a place
-pub fn remove_place(&mut self, place_id: u64)
-```
-
-## Read Methods
-
-```rs
-// Returns the Places
-pub fn get_places(&self) -> Vec<Place>
-
-// Get places by its id
-pub fn get_places_by_id(&self, place_id: u64) -> Option<Place>
-```
 
 # Quickstart
 
@@ -94,28 +37,54 @@ cat ./neardev/dev-account
 
 <br />
 
-## 2. Retrieve the Greeting
+## 2. Write Methods [payable]
 
-`get_greeting` is a read-only method (aka `view` method).
+```rs
+// Add Place
+pub fn add_place(&mut self, place: PlaceInput)
+
+// Vote
+pub fn vote(&mut self, place_id: u64, vote: i8)
+
+// Add pictures to a Place
+pub fn add_picture_to_place(&mut self, place_id: u64, pictures: Vec<String>)
+
+// Remove a place
+pub fn remove_place(&mut self, place_id: u64)
+```
+
+## 3. Read Methods
+
+```rs
+// Returns the Places
+pub fn get_places(&self) -> Vec<Place>
+
+// Get places by its id
+pub fn get_places_by_id(&self, place_id: u64) -> Option<Place>
+```
+
+## 4. Retrieve the Greeting
+
+`get_places` and `get_places_by_id` is a read-only method (aka `view` method).
 
 `View` methods can be called for **free** by anyone, even people **without a NEAR account**!
 
 ```bash
-# Use near-cli to get the greeting
-near view <dev-account> get_greeting
+# Use near-cli to get the places
+near view <dev-account> get_places
 ```
 
 <br />
 
-## 3. Store a New Greeting
+## 5. Store a New Greeting
 
-`set_greeting` changes the contract's state, for which it is a `change` method.
+`add_place`, `vote`, `add_picture_to_place` and `remove_place` changes the contract's state, for which it is a `change` method.
 
 `Change` methods can only be invoked using a NEAR account, since the account needs to pay GAS for the transaction. In this case, we are asking the account we created in step 1 to sign the transaction.
 
 ```bash
-# Use near-cli to set a new greeting
-near call <dev-account> set_greeting '{"greeting":"howdy"}' --accountId <dev-account>
+# Use near-cli to add a new place
+near call <dev-account> add_place '{"place":{"name": "Natura Store","address": "Pampulha","description": "A place to buy perfume.","pictures": ["https://lh5.googleusercontent.com/p/AF1QipMBMUOyXp7E1gZRB_KVeKLOLOpZv1bzZt-JxsAd=w408-h306-k-no"]}}' --accountId <dev-account>
 ```
 
 **Tip:** If you would like to call `set_greeting` using your own account, first login into NEAR using:
