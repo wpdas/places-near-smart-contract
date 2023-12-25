@@ -3,10 +3,8 @@
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::env::log_str;
 use near_sdk::env;
-// use near_sdk::{near_bindgen, serde_json, AccountId, serde};
 use near_sdk::{near_bindgen, AccountId};
 use near_sdk::serde::{Serialize, Deserialize};
-// use near_sdk::collections::{Vector, LookupMap};
 use near_sdk::collections::Vector;
 
 #[near_bindgen]
