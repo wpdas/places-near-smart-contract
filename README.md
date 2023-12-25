@@ -1,4 +1,4 @@
-# Place NEAR Contract
+# Places - NEAR Contract
 
 A smart contract in the NEAR network to store places and enable users to vote and set their qualities.
 
