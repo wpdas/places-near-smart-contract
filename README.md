@@ -71,7 +71,7 @@ pub fn get_places_by_id(&self, place_id: u64) -> Option<Place>
 
 ```bash
 # Use near-cli to get the places
-near view <dev-account> get_places
+near view <contract-id> get_places
 ```
 
 <br />
@@ -84,7 +84,7 @@ near view <dev-account> get_places
 
 ```bash
 # Use near-cli to add a new place
-near call <dev-account> add_place '{"place":{"name": "Natura Store","address": "Pampulha","description": "A place to buy perfume.","pictures": ["https://lh5.googleusercontent.com/p/AF1QipMBMUOyXp7E1gZRB_KVeKLOLOpZv1bzZt-JxsAd=w408-h306-k-no"]}}' --accountId <dev-account>
+near call <contract-id> add_place '{"place":{"name": "Natura Store","address": "Pampulha","description": "A place to buy perfume.","pictures": ["https://lh5.googleusercontent.com/p/AF1QipMBMUOyXp7E1gZRB_KVeKLOLOpZv1bzZt-JxsAd=w408-h306-k-no"]}}' --accountId <dev-account>
 ```
 
 **Tip:** If you would like to call `set_greeting` using your own account, first login into NEAR using:
@@ -95,3 +95,23 @@ near login
 ```
 
 and then use the logged account to sign the transaction: `--accountId <your-account>`.
+
+<br />
+
+## 6. View Contract State with Postman
+
+You can see the contract state by sending a POST to `https://rpc.testnet.near.org` with the following body:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": "dontcare",
+  "method": "query",
+  "params": {
+    "request_type": "view_state",
+    "finality": "final",
+    "account_id": "<contract-id>",
+    "prefix_base64": ""
+  }
+}
+```
