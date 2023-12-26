@@ -1,11 +1,10 @@
-
 // Find all our documentation at https://docs.near.org
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
-use near_sdk::env::log_str;
-use near_sdk::env;
-use near_sdk::{near_bindgen, AccountId};
-use near_sdk::serde::{Serialize, Deserialize};
 use near_sdk::collections::Vector;
+use near_sdk::env;
+use near_sdk::env::log_str;
+use near_sdk::serde::{Deserialize, Serialize};
+use near_sdk::{near_bindgen, AccountId};
 
 #[near_bindgen]
 #[derive(BorshDeserialize, BorshSerialize, Debug, Serialize)]
@@ -44,6 +43,7 @@ pub struct Place {
 #[derive(BorshDeserialize, BorshSerialize)]
 pub struct Contract {
     places: Vector<Place>,
+    last_id: u64,
 }
 
 // Define the default, which automatically initializes the contract
@@ -52,6 +52,7 @@ impl Default for Contract {
         Self {
             // b"v" é um prefixador que vai ser usado como chave no store do contrato
             places: Vector::new(b"v"),
+            last_id: 0,
         }
     }
 }
@@ -61,22 +62,25 @@ impl Default for Contract {
 impl Contract {
     // FREE - Public method - returns the places saved, defaulting to DEFAULT_GREETING
     pub fn get_places(&self) -> Vec<Place> {
-        return self.places.to_vec()
+        return self.places.to_vec();
     }
 
     // FREE - get places by id
     pub fn get_places_by_id(&self, place_id: u64) -> Option<Place> {
-        return self.places.get(place_id)
+        if let Some(index) = self.places.iter().position(|place| place.id == place_id) {
+            self.places.get(index as u64)
+        } else {
+            None
+        }
     }
 
     // PAYED - Public method - accepts a place, and records it
     pub fn add_place(&mut self, place: PlaceInput) {
         let place_name = place.name.clone();
-        
         log_str(&format!("Adding new place: {place_name}"));
 
         let new_place = Place {
-            id: self.places.len(),
+            id: self.last_id,
             name: place.name,
             address: place.address,
             description: place.description,
@@ -86,50 +90,67 @@ impl Contract {
             pictures: place.pictures,
         };
 
-        self.places.push(&new_place)
+        self.places.push(&new_place);
+        self.last_id += 1;
     }
 
     // PAYED - Public method - Vote
     pub fn vote(&mut self, place_id: u64, vote: i8) {
-        if self.places.get(place_id).is_some() {
-
+        if let Some(index) = self.places.iter().position(|place| place.id == place_id) {
             // Get the place by its index (id)
-            let mut place = self.places.get(place_id).unwrap() as Place;
+            let mut place = self.places.get(index as u64).unwrap() as Place;
             let place_name = place.name.clone();
             log_str(&format!("Processing vote for: {place_name} - {vote}"));
 
-            // Register the new vote
+            // Check if user has voted on this place already
             let voter = env::predecessor_account_id();
+            let previous_vote_index = place.votes.iter().position(|vote| vote.account_id == voter);
+
+            // Register the new vote
             let new_vote = VoteMeta {
                 account_id: voter,
                 vote_value: vote,
             };
-            
-            place.votes.push(new_vote);
+
+            // If user has voted already, just update its vote
+            if previous_vote_index.is_some() {
+                let vote_index = previous_vote_index.unwrap();
+                place.votes[vote_index] = new_vote;
+            } else {
+                // Add a new vote
+                place.votes.push(new_vote);
+                // Update place's votes_counter
+                place.votes_counter += 1;
+            }
 
             // Update place's avarage of votes
             let votes_length = place.votes.len();
-            let votes_sum = place.votes.iter().map(|vote_data| vote_data.vote_value).reduce(|value_a, value_b| value_a + value_b).unwrap();
+            let votes_sum = place
+                .votes
+                .iter()
+                .map(|vote_data| vote_data.vote_value)
+                .reduce(|value_a, value_b| value_a + value_b)
+                .unwrap();
             place.avarage_votes = votes_sum / votes_length as i8;
 
-            // Update place's votes_counter
-            place.votes_counter += 1;
-
             // Update the place inside the stored places
-            self.places.replace(place_id, &place);
+            self.places.replace(index as u64, &place);
         }
     }
 
     // PAYED - Public method - Add pictures to a place
     pub fn add_picture_to_place(&mut self, place_id: u64, pictures: Vec<String>) {
-        let mut place = self.places.get(place_id).unwrap() as Place;
-        let place_name = place.name.clone();
-        let updated_places = vec![place.pictures, pictures].concat();
-        place.pictures = updated_places;
-        log_str(&format!("Adding pictures to: {place_name}"));
+        if let Some(index) = self.places.iter().position(|place| place.id == place_id) {
+            let mut place = self.places.get(index as u64).unwrap() as Place;
+            let place_name = place.name.clone();
+            log_str(&format!("Adding pictures to: {place_name}"));
 
-        // Update the place inside the stored places
-        self.places.replace(place_id, &place);
+            let updated_places = vec![place.pictures, pictures].concat();
+            place.pictures = updated_places;
+
+            // Update the place inside the stored places
+            self.places.replace(index as u64, &place);
+        }
     }
 
     // PAYED - Public method - Remove a place
@@ -171,7 +192,6 @@ mod tests {
             description: "A beautful place".to_string(),
             pictures: vec![],
         });
-        
 
         let places = contract.get_places();
         let first_child = places.first().unwrap();
@@ -219,14 +239,8 @@ mod tests {
         });
 
         contract.vote(0, 5);
-        contract.vote(0, 1);
-        contract.vote(0, 3);
-        contract.vote(0, 4);
 
-        assert_eq!(
-            contract.get_places_by_id(0).unwrap().avarage_votes,
-            3
-        );
+        assert_eq!(contract.get_places_by_id(0).unwrap().avarage_votes, 5);
     }
 
     #[test]
@@ -281,5 +295,29 @@ mod tests {
 
         assert_eq!(contract.get_places().len(), 1);
         assert_eq!(contract.get_places()[0].name, "Grumeti Gourmet".to_string());
+    }
+
+    #[test]
+    fn vote_twice_with_diff_values() {
+        let mut contract = Contract::default();
+
+        contract.add_place(PlaceInput {
+            name: "Grumeti Gourmet".to_string(),
+            address: "Pampulha".to_string(),
+            description: "Um lugar legal".to_string(),
+            pictures: vec![],
+        });
+
+        contract.add_place(PlaceInput {
+            name: "Popurri Gourmet".to_string(),
+            address: "Lourdes".to_string(),
+            description: "A beautful place".to_string(),
+            pictures: vec![],
+        });
+
+        contract.vote(1, 2);
+        assert_eq!(contract.get_places_by_id(1).unwrap().avarage_votes, 2);
+        contract.vote(1, 5);
+        assert_eq!(contract.get_places_by_id(1).unwrap().avarage_votes, 5);
     }
 }
