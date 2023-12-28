@@ -15,13 +15,24 @@ pub struct VoteMeta {
 }
 
 #[near_bindgen]
+#[derive(BorshDeserialize, BorshSerialize, Debug, Serialize, Deserialize)]
+#[serde(crate = "near_sdk::serde")]
+pub struct Address {
+    address: String,
+    country: String,
+    state_or_province: String,
+    city: String,
+}
+
+#[near_bindgen]
 #[derive(Serialize, Deserialize)]
 #[serde(crate = "near_sdk::serde")]
 pub struct PlaceInput {
     name: String,
-    address: String,
+    address: Address,
     description: String,
     pictures: Vec<String>,
+    place_type: String, // Food, shopping, travel, study, university,...
 }
 
 #[near_bindgen]
@@ -30,8 +41,9 @@ pub struct PlaceInput {
 pub struct Place {
     id: u64,
     name: String,
-    address: String,
+    address: Address,
     description: String,
+    place_type: String, // Food, shopping, travel, study, university,...
     avarage_votes: i8,
     votes_counter: i32,
     votes: Vec<VoteMeta>,
@@ -84,6 +96,7 @@ impl Contract {
             name: place.name,
             address: place.address,
             description: place.description,
+            place_type: place.place_type,
             avarage_votes: 0,
             votes_counter: 0,
             votes: vec![],
@@ -177,7 +190,8 @@ mod tests {
 
         let new_place = PlaceInput {
             name: "Grumeti Gourmet".to_string(),
-            address: "Pampulha".to_string(),
+            address: Address { address: "Pampulha".to_string(), country: "Brazil".to_string(), state_or_province: "Minas Gerais".to_string(), city: "Belo Horizonte".to_string() },
+            place_type: "shopping".to_string(),
             description: "Um lugar legal".to_string(),
             pictures: vec![
                 "https://lh5.googleusercontent.com/p/AF1QipMBMUOyXp7E1gZRB_KVeKLOLOpZv1bzZt-JxsAd=w408-h306-k-no".to_string(),
@@ -188,7 +202,13 @@ mod tests {
 
         contract.add_place(PlaceInput {
             name: "Popurri Gourmet".to_string(),
-            address: "Lourdes".to_string(),
+            address: Address {
+                address: "Lourdes".to_string(),
+                country: "Brazil".to_string(),
+                state_or_province: "Minas Gerais".to_string(),
+                city: "Belo Horizonte".to_string(),
+            },
+            place_type: "shopping".to_string(),
             description: "A beautful place".to_string(),
             pictures: vec![],
         });
@@ -206,7 +226,8 @@ mod tests {
 
         let new_place = PlaceInput {
             name: "Grumeti Gourmet".to_string(),
-            address: "Pampulha".to_string(),
+            address: Address { address: "Pampulha".to_string(), country: "Brazil".to_string(), state_or_province: "Minas Gerais".to_string(), city: "Belo Horizonte".to_string() },
+            place_type: "food".to_string(),
             description: "Um lugar legal".to_string(),
             pictures: vec![
                 "https://lh5.googleusercontent.com/p/AF1QipMBMUOyXp7E1gZRB_KVeKLOLOpZv1bzZt-JxsAd=w408-h306-k-no".to_string(),
@@ -217,7 +238,13 @@ mod tests {
 
         contract.add_place(PlaceInput {
             name: "Popurri Gourmet".to_string(),
-            address: "Lourdes".to_string(),
+            address: Address {
+                address: "Lourdes".to_string(),
+                country: "Brazil".to_string(),
+                state_or_province: "Minas Gerais".to_string(),
+                city: "Belo Horizonte".to_string(),
+            },
+            place_type: "university".to_string(),
             description: "A beautful place".to_string(),
             pictures: vec![],
         });
@@ -233,7 +260,13 @@ mod tests {
 
         contract.add_place(PlaceInput {
             name: "Grumeti Gourmet".to_string(),
-            address: "Pampulha".to_string(),
+            address: Address {
+                address: "Pampulha".to_string(),
+                country: "Brazil".to_string(),
+                state_or_province: "Minas Gerais".to_string(),
+                city: "Belo Horizonte".to_string(),
+            },
+            place_type: "travel".to_string(),
             description: "Um lugar legal".to_string(),
             pictures: vec![],
         });
@@ -249,14 +282,26 @@ mod tests {
 
         contract.add_place(PlaceInput {
             name: "Grumeti Gourmet".to_string(),
-            address: "Pampulha".to_string(),
+            address: Address {
+                address: "Pampulha".to_string(),
+                country: "Brazil".to_string(),
+                state_or_province: "Minas Gerais".to_string(),
+                city: "Belo Horizonte".to_string(),
+            },
+            place_type: "shopping".to_string(),
             description: "Um lugar legal".to_string(),
             pictures: vec![],
         });
 
         contract.add_place(PlaceInput {
             name: "Popurri Gourmet".to_string(),
-            address: "Lourdes".to_string(),
+            address: Address {
+                address: "Lourdes".to_string(),
+                country: "Brazil".to_string(),
+                state_or_province: "Minas Gerais".to_string(),
+                city: "Belo Horizonte".to_string(),
+            },
+            place_type: "shopping".to_string(),
             description: "A beautful place".to_string(),
             pictures: vec![],
         });
@@ -279,14 +324,26 @@ mod tests {
 
         contract.add_place(PlaceInput {
             name: "Grumeti Gourmet".to_string(),
-            address: "Pampulha".to_string(),
+            address: Address {
+                address: "Pampulha".to_string(),
+                country: "Brazil".to_string(),
+                state_or_province: "Minas Gerais".to_string(),
+                city: "Belo Horizonte".to_string(),
+            },
+            place_type: "shopping".to_string(),
             description: "Um lugar legal".to_string(),
             pictures: vec![],
         });
 
         contract.add_place(PlaceInput {
             name: "Popurri Gourmet".to_string(),
-            address: "Lourdes".to_string(),
+            address: Address {
+                address: "Lourdes".to_string(),
+                country: "Brazil".to_string(),
+                state_or_province: "Minas Gerais".to_string(),
+                city: "Belo Horizonte".to_string(),
+            },
+            place_type: "shopping".to_string(),
             description: "A beautful place".to_string(),
             pictures: vec![],
         });
@@ -303,14 +360,26 @@ mod tests {
 
         contract.add_place(PlaceInput {
             name: "Grumeti Gourmet".to_string(),
-            address: "Pampulha".to_string(),
+            address: Address {
+                address: "Pampulha".to_string(),
+                country: "Brazil".to_string(),
+                state_or_province: "Minas Gerais".to_string(),
+                city: "Belo Horizonte".to_string(),
+            },
+            place_type: "shopping".to_string(),
             description: "Um lugar legal".to_string(),
             pictures: vec![],
         });
 
         contract.add_place(PlaceInput {
             name: "Popurri Gourmet".to_string(),
-            address: "Lourdes".to_string(),
+            address: Address {
+                address: "Lourdes".to_string(),
+                country: "Brazil".to_string(),
+                state_or_province: "Minas Gerais".to_string(),
+                city: "Belo Horizonte".to_string(),
+            },
+            place_type: "shopping".to_string(),
             description: "A beautful place".to_string(),
             pictures: vec![],
         });
