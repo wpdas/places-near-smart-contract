@@ -167,6 +167,7 @@ impl Contract {
     }
 
     // PAYED - Public method - Remove a place
+    // TODO: Add an admin list and set it to allow only admin to remove_places
     pub fn remove_place(&mut self, place_id: u64) {
         // NOTE: Is this a similar way for JS -> Array.filter?
         log_str(&format!("Removing place where place_id is: {place_id}"));
