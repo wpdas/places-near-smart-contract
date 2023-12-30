@@ -12,6 +12,7 @@ use near_sdk::{near_bindgen, AccountId};
 pub struct VoteMeta {
     account_id: AccountId,
     vote_value: i8,
+    feedback: Option<String>,
 }
 
 #[near_bindgen]
@@ -108,7 +109,7 @@ impl Contract {
     }
 
     // PAYED - Public method - Vote
-    pub fn vote(&mut self, place_id: u64, vote: i8) {
+    pub fn vote(&mut self, place_id: u64, vote: i8, feedback: Option<String>) {
         if let Some(index) = self.places.iter().position(|place| place.id == place_id) {
             // Get the place by its index (id)
             let mut place = self.places.get(index as u64).unwrap() as Place;
@@ -123,6 +124,7 @@ impl Contract {
             let new_vote = VoteMeta {
                 account_id: voter,
                 vote_value: vote,
+                feedback,
             };
 
             // If user has voted already, just update its vote
@@ -152,6 +154,7 @@ impl Contract {
     }
 
     // PAYED - Public method - Add pictures to a place
+    // TODO: Add an admin list and set it to allow only admin to add_picture_to_place [by using "new" method or static accountId list]
     pub fn add_picture_to_place(&mut self, place_id: u64, pictures: Vec<String>) {
         if let Some(index) = self.places.iter().position(|place| place.id == place_id) {
             let mut place = self.places.get(index as u64).unwrap() as Place;
@@ -167,7 +170,7 @@ impl Contract {
     }
 
     // PAYED - Public method - Remove a place
-    // TODO: Add an admin list and set it to allow only admin to remove_places
+    // TODO: Add an admin list and set it to allow only admin to remove_places [by using "new" method or static accountId list]
     pub fn remove_place(&mut self, place_id: u64) {
         // NOTE: Is this a similar way for JS -> Array.filter?
         log_str(&format!("Removing place where place_id is: {place_id}"));
@@ -272,7 +275,7 @@ mod tests {
             pictures: vec![],
         });
 
-        contract.vote(0, 5);
+        contract.vote(0, 5, Some("I've been asking for problems".to_string()));
 
         assert_eq!(contract.get_places_by_id(0).unwrap().avarage_votes, 5);
     }
@@ -385,9 +388,9 @@ mod tests {
             pictures: vec![],
         });
 
-        contract.vote(1, 2);
+        contract.vote(1, 2, Some("Look me in the eyes, tell me what you see...".to_string()));
         assert_eq!(contract.get_places_by_id(1).unwrap().avarage_votes, 2);
-        contract.vote(1, 5);
+        contract.vote(1, 5, Some("Now you know, you free to go!".to_string()));
         assert_eq!(contract.get_places_by_id(1).unwrap().avarage_votes, 5);
     }
 }

@@ -115,3 +115,45 @@ You can see the contract state by sending a POST to `https://rpc.testnet.near.or
   }
 }
 ```
+
+## 6. Deploying to Mainnet (Production)
+
+You can go to [NEAR CLI](https://docs.near.org/tools/near-cli) page to understand more. But below, are some steps to deploy the contract for Mainnet.
+
+Change the network by prepending an environment variable to the commands.
+
+After building your contract:
+
+1. Login with your account:
+
+```sh
+NEAR_ENV=mainnet near login
+```
+
+2. Create an account to store the Contract:
+
+```sh
+# In this case, you'll use your credentials
+NEAR_ENV=mainnet near create-account <created-account-id>.wendersonpires.near --masterAccount wendersonpires.near --initialBalance <amount-of-near-to-send-to-the-new-account-being-created>
+
+# e.g NEAR_ENV=mainnet near create-account place-contract.wendersonpires.near --masterAccount wendersonpires.near --initialBalance 0.01
+```
+
+3. Deploy Contract to the created account:
+
+```sh
+NEAR_ENV=mainnet near deploy --accountId <created-account-id>.wendersonpires.near --wasmFile ./target/wasm32-unknown-unknown/release/places_near_contract.wasm
+
+# e.g NEAR_ENV=mainnet near deploy --accountId place-contract.wendersonpires.near --wasmFile ./target/wasm32-unknown-unknown/release/places_near_contract.wasm
+```
+
+4. Now, the Contract is ready to be used:
+
+```sh
+NEAR_ENV=mainnet near view place-contract.wendersonpires.near get_places
+```
+
+## 7. Accounts with the final version of this Contract (testnet)
+
+1. dev-1703905481009-42833184495068
+2. place-contract-test.wendersonpires.testnet
