@@ -116,7 +116,9 @@ You can see the contract state by sending a POST to `https://rpc.testnet.near.or
 }
 ```
 
-## 6. Deploying to Mainnet (Production)
+<br />
+
+## 7. Deploying to Mainnet (Production)
 
 You can go to [NEAR CLI](https://docs.near.org/tools/near-cli) page to understand more. But below, are some steps to deploy the contract for Mainnet.
 
@@ -153,7 +155,9 @@ NEAR_ENV=mainnet near deploy --accountId <created-account-id>.wendersonpires.nea
 NEAR_ENV=mainnet near view place-contract.wendersonpires.near get_places
 ```
 
-## 7. Accounts with the final version of this Contract (testnet)
+<br />
+
+## 8. Accounts with the final version of this Contract (testnet)
 
 1. dev-1703905481009-42833184495068
 2. place-contract-test.wendersonpires.testnet
