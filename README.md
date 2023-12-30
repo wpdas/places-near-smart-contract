@@ -130,7 +130,7 @@ After building your contract:
 NEAR_ENV=mainnet near login
 ```
 
-2. Create an account to store the Contract:
+2. Create an account/sub-account to store the Contract
 
 ```sh
 # In this case, you'll use your credentials
@@ -139,7 +139,7 @@ NEAR_ENV=mainnet near create-account <created-account-id>.wendersonpires.near --
 # e.g NEAR_ENV=mainnet near create-account place-contract.wendersonpires.near --masterAccount wendersonpires.near --initialBalance 0.01
 ```
 
-3. Deploy Contract to the created account:
+3. Deploy Contract to the created account
 
 ```sh
 NEAR_ENV=mainnet near deploy --accountId <created-account-id>.wendersonpires.near --wasmFile ./target/wasm32-unknown-unknown/release/places_near_contract.wasm
@@ -147,7 +147,7 @@ NEAR_ENV=mainnet near deploy --accountId <created-account-id>.wendersonpires.nea
 # e.g NEAR_ENV=mainnet near deploy --accountId place-contract.wendersonpires.near --wasmFile ./target/wasm32-unknown-unknown/release/places_near_contract.wasm
 ```
 
-4. Now, the Contract is ready to be used:
+4. Now, the Contract is ready to be used
 
 ```sh
 NEAR_ENV=mainnet near view place-contract.wendersonpires.near get_places
