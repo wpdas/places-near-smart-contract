@@ -40,6 +40,9 @@ cat ./neardev/dev-account
 ## 2. Write Methods [payable]
 
 ```rs
+// Init contract - called by-owner only (determines who can do admin actions)
+pub fn init(owner: AccountId, admins: Option<Vec<AccountId>>)
+
 // Add Place
 pub fn add_place(&mut self, place: PlaceInput)
 
@@ -63,7 +66,7 @@ pub fn get_places(&self) -> Vec<Place>
 pub fn get_places_by_id(&self, place_id: u64) -> Option<Place>
 ```
 
-## 4. Retrieve the Greeting
+## 4. Retrieve the Places
 
 `get_places` and `get_places_by_id` is a read-only method (aka `view` method).
 
@@ -76,7 +79,7 @@ near view <contract-id> get_places
 
 <br />
 
-## 5. Store a New Greeting
+## 5. Store a New Place
 
 `add_place`, `vote`, `add_picture_to_place` and `remove_place` changes the contract's state, for which it is a `change` method.
 
@@ -84,10 +87,10 @@ near view <contract-id> get_places
 
 ```bash
 # Use near-cli to add a new place
-near call <contract-id> add_place '{"place":{"name": "Natura Store","address": "Pampulha","description": "A place to buy perfume.","pictures": ["https://lh5.googleusercontent.com/p/AF1QipMBMUOyXp7E1gZRB_KVeKLOLOpZv1bzZt-JxsAd=w408-h306-k-no"]}}' --accountId <dev-account>
+near call <contract-id> add_place '{"place":{"name": "Natura Store","address": "Pampulha","description": "A place to buy perfume.","pictures": ["https://lh5.googleusercontent.com/p/AF1QipMBMUOyXp7E1gZRB_KVeKLOLOpZv1bzZt-JxsAd=w408-h306-k-no"]}}' --accountId <user-account-id>
 ```
 
-**Tip:** If you would like to call `set_greeting` using your own account, first login into NEAR using:
+**Tip:** If you would like to call `add_place` using your own account, first login into NEAR using:
 
 ```bash
 # Use near-cli to login your NEAR account
@@ -138,7 +141,7 @@ NEAR_ENV=mainnet near login
 # In this case, you'll use your credentials
 NEAR_ENV=mainnet near create-account <created-account-id>.wendersonpires.near --masterAccount wendersonpires.near --initialBalance <amount-of-near-to-send-to-the-new-account-being-created>
 
-# e.g NEAR_ENV=mainnet near create-account place-contract.wendersonpires.near --masterAccount wendersonpires.near --initialBalance 0.01
+# e.g NEAR_ENV=mainnet near create-account place-contract.wendersonpires.near --masterAccount wendersonpires.near --initialBalance 2
 ```
 
 3. Deploy Contract to the created account
@@ -159,5 +162,4 @@ NEAR_ENV=mainnet near view place-contract.wendersonpires.near get_places
 
 ## 8. Accounts with the final version of this Contract (testnet)
 
-1. dev-1703905481009-42833184495068
-2. place-contract-test.wendersonpires.testnet
+1. **place-contract.wendersonpires.testnet**

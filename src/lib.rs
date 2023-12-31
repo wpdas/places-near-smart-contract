@@ -1,10 +1,14 @@
 // Find all our documentation at https://docs.near.org
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
-use near_sdk::collections::Vector;
+use near_sdk::collections::{UnorderedSet, Vector};
 use near_sdk::env;
 use near_sdk::env::log_str;
 use near_sdk::serde::{Deserialize, Serialize};
 use near_sdk::{near_bindgen, AccountId};
+
+pub mod internal;
+pub mod utils;
+pub use crate::utils::*;
 
 #[near_bindgen]
 #[derive(BorshDeserialize, BorshSerialize, Debug, Serialize)]
@@ -55,15 +59,20 @@ pub struct Place {
 #[near_bindgen]
 #[derive(BorshDeserialize, BorshSerialize)]
 pub struct Contract {
+    owner: AccountId,
+    admins: UnorderedSet<AccountId>,
     places: Vector<Place>,
     last_id: u64,
 }
 
+// Default state to use if no initialize method is called.
 // Define the default, which automatically initializes the contract
 impl Default for Contract {
     fn default() -> Self {
         Self {
             // b"v" é um prefixador que vai ser usado como chave no store do contrato
+            owner: "wendersonpires.testnet".parse().unwrap(),
+            admins: UnorderedSet::new(b"s"),
             places: Vector::new(b"v"),
             last_id: 0,
         }
@@ -73,12 +82,31 @@ impl Default for Contract {
 // Implement the contract structure
 #[near_bindgen]
 impl Contract {
-    // FREE - Public method - returns the places saved, defaulting to DEFAULT_GREETING
+    #[init]
+    pub fn init(owner: AccountId, admins: Option<Vec<AccountId>>) -> Self {
+        assert!(!env::state_exists(), "Already initialized");
+
+        Self {
+            owner,
+            admins: account_vec_to_set(
+                if admins.is_some() {
+                    admins.unwrap()
+                } else {
+                    vec![]
+                },
+                b"s",
+            ),
+            places: Vector::new(b"v"),
+            last_id: 0,
+        }
+    }
+
+    // free - Returns the places saved, defaulting to DEFAULT_GREETING
     pub fn get_places(&self) -> Vec<Place> {
         return self.places.to_vec();
     }
 
-    // FREE - get places by id
+    // free - Get places by id
     pub fn get_places_by_id(&self, place_id: u64) -> Option<Place> {
         if let Some(index) = self.places.iter().position(|place| place.id == place_id) {
             self.places.get(index as u64)
@@ -87,7 +115,7 @@ impl Contract {
         }
     }
 
-    // PAYED - Public method - accepts a place, and records it
+    // payable - Accepts a place, and records it
     pub fn add_place(&mut self, place: PlaceInput) {
         let place_name = place.name.clone();
         log_str(&format!("Adding new place: {place_name}"));
@@ -108,7 +136,7 @@ impl Contract {
         self.last_id += 1;
     }
 
-    // PAYED - Public method - Vote
+    // payable - Vote
     pub fn vote(&mut self, place_id: u64, vote: i8, feedback: Option<String>) {
         if let Some(index) = self.places.iter().position(|place| place.id == place_id) {
             // Get the place by its index (id)
@@ -153,9 +181,13 @@ impl Contract {
         }
     }
 
-    // PAYED - Public method - Add pictures to a place
-    // TODO: Add an admin list and set it to allow only admin to add_picture_to_place [by using "new" method or static accountId list]
+    // payable - Add pictures to a place
     pub fn add_picture_to_place(&mut self, place_id: u64, pictures: Vec<String>) {
+        assert!(
+            self.is_owner_or_admin(),
+            "Only the owner or admins can call this method"
+        );
+
         if let Some(index) = self.places.iter().position(|place| place.id == place_id) {
             let mut place = self.places.get(index as u64).unwrap() as Place;
             let place_name = place.name.clone();
@@ -169,228 +201,24 @@ impl Contract {
         }
     }
 
-    // PAYED - Public method - Remove a place
-    // TODO: Add an admin list and set it to allow only admin to remove_places [by using "new" method or static accountId list]
+    // payable - Remove a place
     pub fn remove_place(&mut self, place_id: u64) {
+        assert!(
+            self.is_owner_or_admin(),
+            "Only the owner or admins can call this method"
+        );
+
         // NOTE: Is this a similar way for JS -> Array.filter?
         log_str(&format!("Removing place where place_id is: {place_id}"));
         if let Some(index) = self.places.iter().position(|place| place.id == place_id) {
             self.places.swap_remove(index as u64);
         }
     }
+
+    // TODO: add and remove admin [admin can do it only]
 }
 
-/*
- * The rest of this file holds the inline tests for the code above
- * Learn more about Rust tests: https://doc.rust-lang.org/book/ch11-01-writing-tests.html
- */
+// Tests in a separated file (see more here -> http://xion.io/post/code/rust-unit-test-placement.html)
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn add_places_then_get_places() {
-        let mut contract = Contract::default();
-
-        let new_place = PlaceInput {
-            name: "Grumeti Gourmet".to_string(),
-            address: Address { address: "Pampulha".to_string(), country: "Brazil".to_string(), state_or_province: "Minas Gerais".to_string(), city: "Belo Horizonte".to_string() },
-            place_type: "shopping".to_string(),
-            description: "Um lugar legal".to_string(),
-            pictures: vec![
-                "https://lh5.googleusercontent.com/p/AF1QipMBMUOyXp7E1gZRB_KVeKLOLOpZv1bzZt-JxsAd=w408-h306-k-no".to_string(),
-                "https://www.meioemensagem.com.br/wp-content/uploads/2019/05/Natura_NovaLoja_Fachada_Credito_IlanaBessler_575.jpg".to_string()
-            ],
-        };
-        contract.add_place(new_place);
-
-        contract.add_place(PlaceInput {
-            name: "Popurri Gourmet".to_string(),
-            address: Address {
-                address: "Lourdes".to_string(),
-                country: "Brazil".to_string(),
-                state_or_province: "Minas Gerais".to_string(),
-                city: "Belo Horizonte".to_string(),
-            },
-            place_type: "shopping".to_string(),
-            description: "A beautful place".to_string(),
-            pictures: vec![],
-        });
-
-        let places = contract.get_places();
-        let first_child = places.first().unwrap();
-
-        assert_eq!(places.len(), 2);
-        assert_eq!(first_child.id, 0);
-    }
-
-    #[test]
-    fn get_place_by_id() {
-        let mut contract = Contract::default();
-
-        let new_place = PlaceInput {
-            name: "Grumeti Gourmet".to_string(),
-            address: Address { address: "Pampulha".to_string(), country: "Brazil".to_string(), state_or_province: "Minas Gerais".to_string(), city: "Belo Horizonte".to_string() },
-            place_type: "food".to_string(),
-            description: "Um lugar legal".to_string(),
-            pictures: vec![
-                "https://lh5.googleusercontent.com/p/AF1QipMBMUOyXp7E1gZRB_KVeKLOLOpZv1bzZt-JxsAd=w408-h306-k-no".to_string(),
-                "https://www.meioemensagem.com.br/wp-content/uploads/2019/05/Natura_NovaLoja_Fachada_Credito_IlanaBessler_575.jpg".to_string()
-            ],
-        };
-        contract.add_place(new_place);
-
-        contract.add_place(PlaceInput {
-            name: "Popurri Gourmet".to_string(),
-            address: Address {
-                address: "Lourdes".to_string(),
-                country: "Brazil".to_string(),
-                state_or_province: "Minas Gerais".to_string(),
-                city: "Belo Horizonte".to_string(),
-            },
-            place_type: "university".to_string(),
-            description: "A beautful place".to_string(),
-            pictures: vec![],
-        });
-
-        let place = contract.get_places_by_id(1).unwrap();
-
-        assert_eq!(place.id, 1);
-    }
-
-    #[test]
-    fn vote_then_get_avarage() {
-        let mut contract = Contract::default();
-
-        contract.add_place(PlaceInput {
-            name: "Grumeti Gourmet".to_string(),
-            address: Address {
-                address: "Pampulha".to_string(),
-                country: "Brazil".to_string(),
-                state_or_province: "Minas Gerais".to_string(),
-                city: "Belo Horizonte".to_string(),
-            },
-            place_type: "travel".to_string(),
-            description: "Um lugar legal".to_string(),
-            pictures: vec![],
-        });
-
-        contract.vote(0, 5, Some("I've been asking for problems".to_string()));
-
-        assert_eq!(contract.get_places_by_id(0).unwrap().avarage_votes, 5);
-    }
-
-    #[test]
-    fn update_place_pictures() {
-        let mut contract = Contract::default();
-
-        contract.add_place(PlaceInput {
-            name: "Grumeti Gourmet".to_string(),
-            address: Address {
-                address: "Pampulha".to_string(),
-                country: "Brazil".to_string(),
-                state_or_province: "Minas Gerais".to_string(),
-                city: "Belo Horizonte".to_string(),
-            },
-            place_type: "shopping".to_string(),
-            description: "Um lugar legal".to_string(),
-            pictures: vec![],
-        });
-
-        contract.add_place(PlaceInput {
-            name: "Popurri Gourmet".to_string(),
-            address: Address {
-                address: "Lourdes".to_string(),
-                country: "Brazil".to_string(),
-                state_or_province: "Minas Gerais".to_string(),
-                city: "Belo Horizonte".to_string(),
-            },
-            place_type: "shopping".to_string(),
-            description: "A beautful place".to_string(),
-            pictures: vec![],
-        });
-
-        let pic_0 = "https://lh5.googleusercontent.com/p/AF1QipMBMUOyXp7E1gZRB_KVeKLOLOpZv1bzZt-JxsAd=w408-h306-k-no".to_string();
-        let pic_1 = "https://www.meioemensagem.com.br/wp-content/uploads/2019/05/Natura_NovaLoja_Fachada_Credito_IlanaBessler_575.jpg".to_string();
-        let new_pictures = vec![pic_0.clone(), pic_1.clone()];
-
-        contract.add_picture_to_place(0, new_pictures);
-
-        let place_0 = contract.get_places_by_id(0).unwrap();
-
-        assert_eq!(place_0.pictures[0], pic_0);
-        assert_eq!(place_0.pictures[1], pic_1);
-    }
-
-    #[test]
-    fn remove_place_then_check_if_it_is_enabled() {
-        let mut contract = Contract::default();
-
-        contract.add_place(PlaceInput {
-            name: "Grumeti Gourmet".to_string(),
-            address: Address {
-                address: "Pampulha".to_string(),
-                country: "Brazil".to_string(),
-                state_or_province: "Minas Gerais".to_string(),
-                city: "Belo Horizonte".to_string(),
-            },
-            place_type: "shopping".to_string(),
-            description: "Um lugar legal".to_string(),
-            pictures: vec![],
-        });
-
-        contract.add_place(PlaceInput {
-            name: "Popurri Gourmet".to_string(),
-            address: Address {
-                address: "Lourdes".to_string(),
-                country: "Brazil".to_string(),
-                state_or_province: "Minas Gerais".to_string(),
-                city: "Belo Horizonte".to_string(),
-            },
-            place_type: "shopping".to_string(),
-            description: "A beautful place".to_string(),
-            pictures: vec![],
-        });
-
-        contract.remove_place(1);
-
-        assert_eq!(contract.get_places().len(), 1);
-        assert_eq!(contract.get_places()[0].name, "Grumeti Gourmet".to_string());
-    }
-
-    #[test]
-    fn vote_twice_with_diff_values() {
-        let mut contract = Contract::default();
-
-        contract.add_place(PlaceInput {
-            name: "Grumeti Gourmet".to_string(),
-            address: Address {
-                address: "Pampulha".to_string(),
-                country: "Brazil".to_string(),
-                state_or_province: "Minas Gerais".to_string(),
-                city: "Belo Horizonte".to_string(),
-            },
-            place_type: "shopping".to_string(),
-            description: "Um lugar legal".to_string(),
-            pictures: vec![],
-        });
-
-        contract.add_place(PlaceInput {
-            name: "Popurri Gourmet".to_string(),
-            address: Address {
-                address: "Lourdes".to_string(),
-                country: "Brazil".to_string(),
-                state_or_province: "Minas Gerais".to_string(),
-                city: "Belo Horizonte".to_string(),
-            },
-            place_type: "shopping".to_string(),
-            description: "A beautful place".to_string(),
-            pictures: vec![],
-        });
-
-        contract.vote(1, 2, Some("Look me in the eyes, tell me what you see...".to_string()));
-        assert_eq!(contract.get_places_by_id(1).unwrap().avarage_votes, 2);
-        contract.vote(1, 5, Some("Now you know, you free to go!".to_string()));
-        assert_eq!(contract.get_places_by_id(1).unwrap().avarage_votes, 5);
-    }
-}
+#[path = "./tests.rs"]
+mod tests;
