@@ -11,7 +11,7 @@ Frontend repository: [**places-near-dapp**](https://github.com/wpdas/places-near
 
 <br />
 
-# Quickstart
+# General Info
 
 1. Make sure you have installed [rust](https://rust.org/).
 2. Install the [`NEAR CLI`](https://github.com/near/near-cli#setup)
