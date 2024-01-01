@@ -2,6 +2,13 @@
 
 A smart contract in the NEAR network. This contract allows users to store places, rate and navigate through them.
 
+Access the live dapp here:
+
+- [**Places DApp (mainnet)**](https://places-dapp-near.vercel.app/)
+- [**Places DApp (testnet)**](https://places-dapp-near-testnet.vercel.app/)
+
+Frontend repository: [**places-near-dapp**](https://github.com/wpdas/places-near-dapp)
+
 <br />
 
 # Quickstart
