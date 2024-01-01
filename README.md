@@ -178,7 +178,13 @@ place-contract.wendersonpires.testnet
 
 ### Mainnet
 
-Contract deployment using account id `place-contract.wendersonpires.near`
+Account `place-contract.wendersonpires.near` created with:
+
+```sh
+NEAR_ENV=mainnet near create-account place-contract.wendersonpires.near --masterAccount wendersonpires.near --initialBalance 2
+```
+
+Contract deployment using account id `place-contract.wendersonpires.near`:
 
 ```sh
 NEAR_ENV=mainnet near deploy --accountId place-contract.wendersonpires.near --wasmFile ./target/wasm32-unknown-unknown/release/places_near_contract.wasm
