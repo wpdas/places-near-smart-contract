@@ -160,6 +160,34 @@ NEAR_ENV=mainnet near view place-contract.wendersonpires.near get_places
 
 <br />
 
-## 8. Accounts with the final version of this Contract (testnet)
+## 8. Contract Address
 
-1. **place-contract.wendersonpires.testnet**
+### Mainnet
+
+```
+place-contract.wendersonpires.near
+```
+
+### Testnet
+
+```
+place-contract.wendersonpires.testnet
+```
+
+## 9. Good to know
+
+### Mainnet
+
+Contract deployment using account id `place-contract.wendersonpires.near`
+
+```sh
+NEAR_ENV=mainnet near deploy --accountId place-contract.wendersonpires.near --wasmFile ./target/wasm32-unknown-unknown/release/places_near_contract.wasm
+#Transaction: https://explorer.mainnet.near.org/transactions/BdX7Dyr3wKcTBmM14jyNfcrt344gN5sRexJweVdioLfr
+```
+
+Contract initialized with:
+
+```sh
+NEAR_ENV=mainnet near call place-contract.wendersonpires.near init '{"owner": "wendersonpires.near"}' --accountId wendersonpires.near
+# Transaction: https://explorer.mainnet.near.org/transactions/GaTRTxFzGAHMU6PpypAvyARkForfRhhZJy2pdsawpyGg
+```
