@@ -1,6 +1,6 @@
 # Places - NEAR Contract
 
-A smart contract in the NEAR network. This contract allows users to store places, rate and navigate through them.
+A smart contract in the NEAR network. This contract allows uses to register places around the world, evaluate them, post feedback and consult them.
 
 Access the live dapp here:
 
